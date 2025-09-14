@@ -28,7 +28,7 @@ function displayStack(stackArray){
                 </div>
                 <div class="stack-controls">
                     <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: ${potential}</div>
+                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
                     ${buttonsHtml}
                 </div>
             </div>
@@ -52,7 +52,7 @@ function displaySyntaxUI(){
           </div>
           <div class="stack-controls">
             <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-            <div class="potential-display" id="potentialDisplay">${langData.potential}: ${potential}</div>
+            <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
             <div class="syntax-info">
                 <button class="btn btn-primary btn-lg" id="syntaxNextBtn">${langData.nextButton}</button>
             </div>
@@ -82,7 +82,7 @@ function updatePotential(){
     const langData = translations[language];
     const potentialDisplay = document.getElementById('potentialDisplay');
 
-    if(potentialDisplay) potentialDisplay.innerText = `${langData.potential}: ${potential}`;
+    if(potentialDisplay) potentialDisplay.innerHTML = `${langData.potential}: <span class="potentialValue">${potential}</span>`;
 }
 
 function pushToStackManual(value){
@@ -285,7 +285,7 @@ function executeStep(step){
     if(step.type === 'push')
     {
         pushToStackManual(step.value);
-        if(step.detail && step.value !== undefined) step.detail = step.detail.replace('{value}', `<span class="popValue">${step.value}</span>`);
+        if(step.detail && step.value !== undefined) step.detail = step.detail.replace('{value}', `<span class="pushValue">${step.value}</span>`);
     }
     else if(step.type === 'pop')
     {
@@ -307,7 +307,7 @@ function executeStep(step){
             {
                 const joined = removedVals.map(v => `<span class="popValue">${v}</span>`).join(', ');
                 step.detail = step.detail.replace('{removedValues}', joined);
-                step.detail = step.detail.replace('{count}', `<span class="countValue">${step.count}</span>`);
+                step.detail = step.detail.replace('{count}', `<span class="potentialValue">${step.count}</span>`);
             }
         } 
         else step.detail = `<span class="emptyStackMessage">Stack is empty! No multipop performed.</span>`;
@@ -371,7 +371,7 @@ function executeBestCase(){
                 </div>
                 <div class="execution-info mt-3">
                     <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: ${potential}</div>
+                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
                     <p id="currentStepInfo">${langData.executeBestCase}</p>
                 </div>
             </div>
@@ -415,7 +415,7 @@ function executeWorstCase(){
                 </div>
                 <div class="execution-info mt-3">
                     <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: ${potential}</div>
+                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
                     <p id="currentStepInfo">${langData.executeWorstCase}</p>
                 </div>
             </div>
