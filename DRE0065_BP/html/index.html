@@ -2,7 +2,8 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title id="title_main"></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="title_main">Algoritmus Multipop</title>
     <link rel="icon" href="../images/logo.png" type="image/png">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css">
@@ -16,13 +17,13 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
-          <div class="navbar-nav" style="display: flex; align-items: center; gap: 10px;">
-            <a class="btn btn-primary btn-lg" href="#" id="aboutAppBtn" data-toggle="modal" data-target="#aboutModal"></a>
-            <img src="../images/cze_flag.png" alt="CZ" onclick="changeLanguage('cz')" style="width: 60px; cursor: pointer; height: 40px;">
-            <img src="../images/uk_flag.png" alt="EN" onclick="changeLanguage('en')" style="width: 60px; cursor: pointer; height: 40px;">
+          <div class="navbar-nav navbar-tools">
+            <a class="btn btn-primary btn-lg" href="#" id="aboutAppBtn" data-toggle="modal" data-target="#aboutModal" title="About this app"> <span id="aboutAppBtnText"></span></a>
+            <img src="../images/cze_flag.png" alt="CZ" onclick="changeLanguage('cz')" class="flag-img">
+            <img src="../images/uk_flag.png" alt="EN" onclick="changeLanguage('en')" class="flag-img">
           </div>
           <div class="navbar-nav ml-auto" id="backArrow">
-            <button class="btn btn-outline-secondary" onclick="goBack()" id="backBtn">
+            <button class="btn btn-outline-secondary" onclick="goBack()" id="backBtn" title="Go Back">
             </button>
           </div>
         </div>
@@ -30,9 +31,9 @@
     </nav>
 
     <div class="links" id="algorithmLinks">
-      <button class="btn btn-link" id="algorithm1" onclick="changeContent('multipop')"></button>
-      <!-- <button class="btn btn-link" onclick="changeContent('alg2')">ALG2</button>
-      <button class="btn btn-link" onclick="changeContent('alg3')">ALG3</button> -->
+      <button class="btn btn-link" id="algorithm1" onclick="changeContent('multipop')" title="Multipop Algorithm">Multipop</button>
+      <button class="btn btn-link" onclick="changeContent('alg2')">ALG2</button>
+      <!-- <button class="btn btn-link" onclick="changeContent('alg3')">ALG3</button> -->
     </div>
     <div id="dynamicContent" class="text-center mt-5">
     </div>
@@ -127,7 +128,7 @@
                 <input type="text" class="form-control" id="syntaxInput" placeholder="">
               </div>
             </form>
-            <div id="syntaxExample" style="display: none;">
+            <div id="syntaxExample" class="hidden">
               <p id="exampleInfo"></p>
               <button type="button" class="btn btn-secondary" id="nextStepBtn">Next</button>
             </div>
@@ -173,6 +174,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="../js/translations.js"></script>
     <script src="../js/app.js"></script>
     <script src="../js/typesParams.js"></script>
     <script src="../js/multipop.js"></script>
