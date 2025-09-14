@@ -212,19 +212,36 @@ footer span{
     overflow-y: auto;
     text-align: center;
 }
-.popValue{
+.pushValue{
     color: green;
     font-weight: bold;
 }
-.countValue{
+.popValue{
+    color: red;
+    font-weight: bold;
+}
+.potentialValue{
     color: blue;
     font-weight: bold;
 }
 .emptyStackMessage{
-    color: red;
+    color: orange;
     font-weight: bold;
 }
 .noDetail{
     color: #555;
     font-style: italic;
+}
+.navbar-tools{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.flag-img{
+  width: 60px;
+  height: 40px;
+  cursor: pointer;
+}
+.hidden {
+  display: none !important;
 }
