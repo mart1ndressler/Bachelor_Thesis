@@ -1,461 +1,636 @@
-let stackArray = [], stepCount = 0, potential = 0, syntaxCommands = [], currentCommandIndex = 0, steps = [], isBestWorstMode = false;
+let stackArray = [], stepCount = 0, potential = 0, syntaxCommands = [], currentCommandIndex = 0, steps = [], isBestWorstMode = false, mpBusy = false;
+let mpBestWorstMode = null;
+let mpBWIndex = -1;
 
-function updateStackView(){
-    const stackView = document.getElementById('stackView');
-    if(stackView) stackView.innerHTML = stackArray.map(value => `<div class="stack-item">${value}</div>`).join('');
+function mpLang(){
+  return translations[localStorage.getItem('language') || 'en'];
 }
 
-function displayStack(stackArray){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const dynamicContent = document.getElementById('dynamicContent');
-    const buttonsHtml = isBestWorstMode ? '' : `
-        <div id="multipop_buttons">
-          <button class="btn btn-primary btn-lg" onclick="pushToStack()">${langData.pushButton}</button>
-          <button class="btn btn-primary btn-lg" onclick="popFromStack()">${langData.popButton}</button>
-          <button class="btn btn-primary btn-lg" onclick="multipopFromStack()">${langData.multipopButton}</button>
-        </div>
-    `;
+function mpFill(tpl, vars){
+  let out = String(tpl || '');
+  for(const [key, value] of Object.entries(vars || {})){
+    out = out.split(`{${key}}`).join(String(value));
+  }
+  return out;
+}
 
-    if(dynamicContent) 
-    {
-        dynamicContent.innerHTML = `
-            <div id="mainContainer">
-                <div id="stackContainer">
-                    <div id="stackView" class="stack-view">
-                        ${stackArray.map(value => `<div class="stack-item">${value}</div>`).join('')}
-                    </div>
-                </div>
-                <div class="stack-controls">
-                    <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
-                    ${buttonsHtml}
-                </div>
-            </div>
-        `;
-    }
+function updateStackView(){
+  const stackView = document.getElementById('stackView');
+  if(!stackView) return;
+  stackView.innerHTML = stackArray.map(v => `<div class="stack-item">${v}</div>`).join('');
+}
+
+function updateCounters(){
+  const langData = mpLang();
+
+  const sc = document.getElementById('stepCountDisplay');
+  if(sc) sc.innerText = `${langData.stepCount}: ${stepCount}`;
+
+  const pot = document.getElementById('potentialDisplay');
+  if(pot) pot.innerHTML = `${langData.potential}: <span class="potentialValue">${potential}</span>`;
+}
+
+function setSyntaxNextEnabled(enabled){
+  const btn = document.getElementById('syntaxNextBtn');
+  if(btn) btn.disabled = !enabled;
+}
+
+function displayStack(values = stackArray){
+  const langData = mpLang();
+  const dynamicContent = document.getElementById('dynamicContent');
+  if(!dynamicContent) return;
+
+  const buttonsHtml = isBestWorstMode ? '' : `
+    <div id="multipop_buttons">
+      <button class="btn btn-primary btn-lg" onclick="pushToStack()">${langData.pushButton}</button>
+      <button class="btn btn-primary btn-lg" onclick="popFromStack()">${langData.popButton}</button>
+      <button class="btn btn-primary btn-lg" onclick="multipopFromStack()">${langData.multipopButton}</button>
+    </div>
+  `;
+
+  dynamicContent.innerHTML = `
+    <div class="run-panel">
+      <div class="run-row" id="mainContainer">
+        <div id="stackContainer">
+          <div id="stackView" class="stack-view">
+            ${values.map(v => `<div class="stack-item">${v}</div>`).join('')}
+          </div>
+        </div>
+
+        <div class="stack-controls">
+          <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
+          <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
+          ${buttonsHtml}
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function displaySyntaxUI(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const dynamicContent = document.getElementById('dynamicContent');
+  const langData = mpLang();
+  const dynamicContent = document.getElementById('dynamicContent');
+  if(!dynamicContent) return;
 
-    if(dynamicContent) 
-    {
-      dynamicContent.innerHTML = `
-        <div id="mainContainer" style="display: flex; gap: 20px;">
-          <div id="stackContainer">
-            <div id="stackView" class="stack-view">
-                ${stackArray.map(value => `<div class="stack-item">${value}</div>`).join('')}
-            </div>
-          </div>
-          <div class="stack-controls">
-            <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-            <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
-            <div class="syntax-info">
-                <button class="btn btn-primary btn-lg" id="syntaxNextBtn">${langData.nextButton}</button>
-            </div>
-          </div>
-          <div class="syntax-detailed-info">
-            <div id="currentStepInfo"></div>
-            <div id="detailedStepInfo"></div>
+  dynamicContent.innerHTML = `
+    <div class="run-panel">
+      <div class="run-row" id="mainContainer">
+        <div id="stackContainer">
+          <div id="stackView" class="stack-view">
+            ${stackArray.map(v => `<div class="stack-item">${v}</div>`).join('')}
           </div>
         </div>
-      `;
-    }
 
-    const syntaxNextBtn = document.getElementById('syntaxNextBtn');
-    if(syntaxNextBtn) syntaxNextBtn.addEventListener('click', function() {nextSyntaxStep();});
-}
+        <div class="stack-controls">
+          <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
+          <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
 
-function updateStepCount(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const stepCountDisplay = document.getElementById('stepCountDisplay');
+          <div class="syntax-info">
+            <button class="btn btn-primary btn-lg" id="syntaxNextBtn">${langData.nextButton}</button>
+          </div>
+        </div>
 
-    if(stepCountDisplay) stepCountDisplay.innerText = `${langData.stepCount}: ${stepCount}`;
-}
+        <div class="syntax-detailed-info">
+          <div class="info-step-title" id="currentStepInfo"></div>
+          <div class="info-step-detail" id="detailedStepInfo"></div>
+        </div>
+      </div>
+    </div>
+  `;
 
-function updatePotential(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const potentialDisplay = document.getElementById('potentialDisplay');
-
-    if(potentialDisplay) potentialDisplay.innerHTML = `${langData.potential}: <span class="potentialValue">${potential}</span>`;
+  const btn = document.getElementById('syntaxNextBtn');
+  if(btn) btn.onclick = nextSyntaxStep;
+  setSyntaxNextEnabled(!mpBusy);
 }
 
 function pushToStackManual(value){
-    stackArray.push(value);
-    stepCount++;
-    potential++;
+  if(mpBusy) return;
+  stackArray.push(value);
+  stepCount += 1;
+  potential = stackArray.length;
 
-    if(!isBestWorstMode && steps.length > 0) updateStackView();
-    else displayStack(stackArray);
+  updateStackView();
 
-    const stackItems = document.querySelectorAll('.stack-item');
-    const newItem = stackItems[stackItems.length - 1];
-    if(newItem) newItem.classList.add('new-item');
-    updateStepCount();
-    updatePotential();
+  const items = document.querySelectorAll('.stack-item');
+  const newItem = items[items.length - 1];
+  if(newItem) newItem.classList.add('new-item');
+  updateCounters();
 }
 
-function popFromStackManual(){
-    if(stackArray.length > 0) 
-    {
-        const removedValue = stackArray[stackArray.length - 1];
-        const stackItems = document.querySelectorAll('.stack-item');
-        const removedItem = stackItems[stackItems.length - 1];
-        if(!removedItem) return undefined;
+function popFromStackManual()
+{
+  if(mpBusy) 
+    return undefined;
 
-        removedItem.classList.add('removed-item');
-        removedItem.addEventListener('animationend', () => 
-        {
-            stackArray.pop();
-            stepCount++;
-            potential = Math.max(0, potential - 1);
+  const langData = mpLang();
+  if(stackArray.length === 0)
+  {
+    showAppMessage(langData.stackEmptyAlert);
+    return undefined;
+  }
 
-            if(!isBestWorstMode && steps.length > 0) updateStackView();
-            else displayStack(stackArray);
+  const items = document.querySelectorAll('.stack-item');
+  const removedItem = items[items.length - 1];
+  if(!removedItem) 
+    return undefined;
 
-            updateStepCount();
-            updatePotential();
-        }, {once: true});
-        return removedValue;
-    } 
-    else 
-    {
-        const language = localStorage.getItem('language') || 'en';
-        alert(translations[language].stackEmptyAlert);
-        return undefined;
-    }
+  mpBusy = true;
+  setSyntaxNextEnabled(false);
+
+  const removedValue = stackArray[stackArray.length - 1];
+  removedItem.classList.add('removed-item');
+
+  removedItem.addEventListener('animationend', () => {
+    stackArray.pop();
+    stepCount += 1;
+    potential = stackArray.length;
+
+    updateStackView();
+    updateCounters();
+
+    mpBusy = false;
+    setSyntaxNextEnabled(true);
+  }, {once: true});
+  return removedValue;
 }
 
 function multipopFromStackManual(count){
-    if(count > 0) 
-    {
-        const removedVals = stackArray.slice(-count);
-        stepCount++;
-        potential = Math.max(0, potential - count);
+  if(mpBusy) return null;
 
-        const allStackItems = document.querySelectorAll('.stack-item');
-        const allStackItemsArr = Array.from(allStackItems);
-        const removingItems = allStackItemsArr.slice(-count);
-        let finishedCount = 0;
+  const langData = mpLang();
+  if(!Number.isInteger(count) || count <= 0){
+    alert(langData.invalidNumberAlert);
+    return null;
+  }
 
-        removingItems.forEach((item) => 
-        {
-            item.classList.add('removed-item');
-            item.addEventListener('animationend', () => 
-            {
-              finishedCount++;
-              if(finishedCount === removingItems.length) 
-              {
-                for(let i = 0; i < count; i++) stackArray.pop();
-                if(!isBestWorstMode && steps.length > 0) updateStackView();
-                else displayStack(stackArray);
+  const k = Math.min(count, stackArray.length);
+  if(k === 0)
+  {
+    showAppMessage(langData.stackEmptyAlert);
+    return [];
+  }
 
-                updateStepCount();
-                updatePotential();
-              }
-            }, {once: true});
-        });
-        return removedVals;
-    } 
-    else 
-    {
-        const language = localStorage.getItem('language') || 'en';
-        alert(translations[language].invalidNumberAlert);
-        return null;
+  const removedVals = stackArray.slice(-k);
+  const items = Array.from(document.querySelectorAll('.stack-item'));
+  const removingItems = items.slice(-k);
+  if(removingItems.length === 0) return removedVals;
+
+  mpBusy = true;
+  setSyntaxNextEnabled(false);
+
+  let finished = 0;
+  removingItems.forEach(item => {
+    item.classList.add('removed-item');
+    item.addEventListener('animationend', () => {
+      finished++;
+      if(finished === removingItems.length){
+        for(let i = 0; i < k; i++) stackArray.pop();
+        stepCount += k;
+        potential = stackArray.length;
+
+        updateStackView();
+        updateCounters();
+
+        mpBusy = false;
+        setSyntaxNextEnabled(true);
+      }
+    }, {once: true});
+  });
+  return removedVals;
+}
+
+function pushToStack()
+{
+  const L = mpLang();
+
+  openActionInputModal({title: L.pushButton, label: L.enterValuePrompt, placeholder: "1", type: "number", min: 1,
+    onOk: (raw) => {
+      const n = Number(raw);
+      if(Number.isInteger(n) && n > 0)
+      {
+        pushToStackManual(n);
+        return true;
+      }
+
+      _setActionInputError(L.invalidNumberAlert);
+      return false;
     }
+  });
 }
 
-function pushToStack(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const value = prompt(langData.enterValuePrompt);
-
-    if(value && !isNaN(value) && Number(value) > 0) pushToStackManual(parseInt(value));
-    else alert(langData.invalidNumberAlert);
-}
-function popFromStack() {popFromStackManual();}
-
-function multipopFromStack(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const count = parseInt(prompt(langData.multipopPrompt), 10);
-
-    if(!isNaN(count) && count > 0) multipopFromStackManual(count);
-    else alert(langData.invalidNumberAlert);
+function popFromStack(){
+  popFromStackManual();
 }
 
-document.addEventListener('DOMContentLoaded', function (){
-    const nextStepBtn = document.getElementById('nextStepBtn');
-    if(nextStepBtn) nextStepBtn.addEventListener('click', nextSyntaxStep);
-});
+function multipopFromStack()
+{
+  const L = mpLang();
+
+  openActionInputModal({title: L.multipopButton, label: L.multipopPrompt, placeholder: "1", type: "number", min: 1,
+    onOk: (raw) => {
+      const n = Number(raw);
+      if(Number.isInteger(n) && n > 0)
+      {
+        multipopFromStackManual(n);
+        return true;
+      }
+
+      _setActionInputError(L.invalidNumberAlert);
+      return false;
+    }
+  });
+}
 
 function openSyntaxModal(){
-    $('#syntaxModal').modal('show');
-    stackArray = [], stepCount = 0, potential = 0, syntaxCommands = [], steps = [], currentCommandIndex = 0;
-    updateStepCount();
-    updatePotential();
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
+  activeModalContext = 'multipopSyntax';
+  $('#syntaxModal').modal('show');
+  mpBusy = false;
+  isBestWorstMode = false;
+  stackArray = [];
+  stepCount = 0;
+  potential = 0;
+  syntaxCommands = [];
+  steps = [];
+  currentCommandIndex = 0;
 
-    document.getElementById('syntaxModalLabel').textContent = langData.syntaxModalLabel;
-    document.getElementById('syntaxInfo').innerHTML = langData.syntaxInfo;
-    document.getElementById('syntaxInputLabel').textContent = langData.syntaxInputLabel;
-    document.getElementById('syntaxInput').placeholder = langData.syntaxInputPlaceholder;
-    document.getElementById('exampleInfo').textContent = langData.exampleInfo;
-    document.getElementById('nextStepBtn').textContent = langData.nextButton;
-    document.getElementById('startSyntaxBtn').textContent = langData.startSyntaxBtn;
-    document.getElementById('syntaxInput').value = '';
-    document.getElementById('syntaxExample').style.display = 'none';
-    document.getElementById('currentStepInfo').innerHTML = '';
-    document.getElementById('syntaxForm').style.display = 'block';
-    document.getElementById('startSyntaxBtn').style.display = 'block';
-}
+  const input = document.getElementById('syntaxInput');
+  if(input) input.value = '';
 
-function startSyntaxExample(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const syntaxInput = document.getElementById('syntaxInput').value.trim();
+  const btn = document.getElementById('startSyntaxBtn');
+  if(btn) btn.onclick = startSyntaxExample;
 
-    if(!validateSyntax(syntaxInput)) {alert(langData.invalidNumberAlert); return;}
-    syntaxCommands = parseCommands(syntaxInput);
-    if(syntaxCommands.length === 0) {alert(langData.invalidNumberAlert); return;}
-    steps = generateSteps(syntaxCommands); 
-    currentCommandIndex = 0;
-
-    document.getElementById('syntaxForm').style.display = 'none';
-    document.getElementById('startSyntaxBtn').style.display = 'none';
-    document.getElementById('syntaxExample').style.display = 'none';
-    $('#syntaxModal').modal('hide');
-    displaySyntaxUI();
-
-    if(steps.length > 0) 
-    {
-        executeStep(steps[currentCommandIndex]);
-        document.getElementById('currentStepInfo').innerHTML = `${currentCommandIndex + 1}. ${steps[currentCommandIndex].description}`;
-        document.getElementById('detailedStepInfo').innerHTML = steps[currentCommandIndex].detail || "Detail not provided.";
-    }
+  const form = document.getElementById('syntaxForm');
+  if(form) form.style.display = 'block';
+  if(btn) btn.style.display = 'block';
 }
 
 function validateSyntax(input){
-    const syntaxPattern = /^((push\(\d+(?:,\d+)*\)|pop\(\)|multipop\(\d+\))\s*)+$/i;
-    return syntaxPattern.test(input);
+  const syntaxPattern = /^((push\([1-9]\d*(?:,[1-9]\d*)*\)|pop\(\)|multipop\([1-9]\d*\))\s*)+$/i;
+  return syntaxPattern.test(input);
 }
 
 function parseCommands(input){
-    const commandPattern = /(push\((\d+(?:,\d+)*)\)|pop\(\)|multipop\((\d+)\))/gi;
-    let match;
-    const commands = [];
-    while((match = commandPattern.exec(input)) !== null) 
-    {
-        if(match[1].toLowerCase().startsWith('push')) 
-        {
-            const values = match[2].split(',').map(v => parseInt(v.trim()));
-            values.forEach(value => { commands.push({type: 'push', value: value}); });
-        }
-        else if(match[1].toLowerCase().startsWith('pop')) commands.push({type: 'pop'});
-        else if(match[1].toLowerCase().startsWith('multipop')) 
-        {
-            const count = parseInt(match[3]);
-            commands.push({type: 'multipop', count: count});
-        }
+  const commandPattern = /(push\((\d+(?:,\d+)*)\)|pop\(\)|multipop\((\d+)\))/gi;
+  const commands = [];
+  let match;
+
+  while((match = commandPattern.exec(input)) !== null){
+    const token = match[1].toLowerCase();
+    if(token.startsWith('push')){
+      const values = match[2].split(',').map(v => parseInt(v.trim(), 10));
+      values.forEach(v => commands.push({type: 'push', value: v}));
+    } else if(token.startsWith('pop')){
+      commands.push({type: 'pop'});
+    } else {
+      commands.push({type: 'multipop', count: parseInt(match[3], 10)});
     }
-    return commands;
+  }
+
+  return commands;
 }
 
 function generateSteps(commands){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const steps = [];
+  const langData = mpLang();
 
-    commands.forEach(command => 
-    {
-      if(command.type === 'push') steps.push({type: 'push', value: command.value, description: `Push ${command.value}`, detail: langData.pushDetail ? langData.pushDetail.replace('{value}', '{value}') : `Pushing {value}... (No detail found)`});
-      else if(command.type === 'pop') steps.push({type: 'pop', description: `Pop`, detail: langData.popDetail ? langData.popDetail.replace('{removedValue}', '{removedValue}') : "Removing top element... (No detail found)"});
-      else if(command.type === 'multipop') steps.push({type: 'multipop', count: command.count, description: `Multipop(${command.count})`, detail: langData.multipopDetail ? langData.multipopDetail.replace('{count}', command.count).replace('{removedValues}', '{removedValues}') : `Multipop of ${command.count} elements... (No detail found)`});
-    });
-    return steps;
+  return commands.map(cmd => {
+    if(cmd.type === 'push'){
+      return {type:'push', value: cmd.value, description: `${langData.pushButton} ${cmd.value}`, detail: langData.pushDetail || langData.detailNotProvided};
+    }
+    if(cmd.type === 'pop'){
+      return {type:'pop', description: `${langData.popButton}`, detail: langData.popDetail || langData.detailNotProvided};
+    }
+    return {type:'multipop', count: cmd.count, description: `${langData.multipopButton}(${cmd.count})`, detail: langData.multipopDetail || langData.detailNotProvided};
+  });
 }
 
 function executeStep(step){
-    if(step.type === 'push')
-    {
-        pushToStackManual(step.value);
-        if(step.detail && step.value !== undefined) step.detail = step.detail.replace('{value}', `<span class="pushValue">${step.value}</span>`);
+  const langData = mpLang();
+
+  if(step.type === 'push'){
+    pushToStackManual(step.value);
+    const tpl = langData.pushDetail || langData.detailNotProvided || '';
+    step.detail = mpFill(tpl, {
+      value: `<span class="pushValue">${step.value}</span>`
+    });
+    return;
+  }
+
+  if(step.type === 'pop'){
+    const removed = popFromStackManual();
+    if(removed !== undefined){
+      step.removedValue = removed;
+      const tpl = langData.popDetail || langData.detailNotProvided || '';
+      step.detail = mpFill(tpl, {
+        removedValue: `<span class="popValue">${removed}</span>`
+      });
+    }else{
+      step.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoPop || langData.stackEmptyAlert}</span>`;
     }
-    else if(step.type === 'pop')
-    {
-        const removed = popFromStackManual();
-        if(removed !== undefined)
-        {
-            step.removedValue = removed;
-            if(step.detail) step.detail = step.detail.replace('{removedValue}', `<span class="popValue">${removed}</span>`);
-        } 
-        else step.detail = `<span class="emptyStackMessage">Stack is empty! No pop performed.</span>`;
+    return;
+  }
+
+  const removedVals = multipopFromStackManual(step.count);
+  if(removedVals && removedVals.length > 0){
+    step.removedValues = removedVals;
+    const joined = removedVals.map(v => `<span class="popValue">${v}</span>`).join(', ');
+    const k = Math.min(step.count, removedVals.length);
+
+    const tpl = langData.multipopDetail || langData.detailNotProvided || '';
+    step.detail = mpFill(tpl, {
+      removedValues: joined,
+      count: `<span class="potentialValue">${k}</span>`
+    });
+  }else{
+    step.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoMultipop || langData.stackEmptyAlert}</span>`;
+  }
+}
+
+function startSyntaxExample(){
+  const langData = mpLang();
+  const syntaxInput = document.getElementById('syntaxInput').value.trim();
+  if(!validateSyntax(syntaxInput)) {alert(langData.invalidNumberAlert); return;}
+
+  syntaxCommands = parseCommands(syntaxInput);
+  if(syntaxCommands.length === 0) {alert(langData.invalidNumberAlert); return;}
+
+  steps = generateSteps(syntaxCommands);
+  currentCommandIndex = 0;
+
+  $('#syntaxModal').modal('hide');
+  displaySyntaxUI();
+
+  if(steps.length > 0){
+    executeStep(steps[currentCommandIndex]);
+
+    const s = steps[currentCommandIndex];
+    const infoEl = document.getElementById('currentStepInfo');
+    const detailEl = document.getElementById('detailedStepInfo');
+
+    if(infoEl) infoEl.innerHTML = `${currentCommandIndex + 1}. ${s.description}`;
+
+    if(detailEl){
+      detailEl.innerHTML = (s.detail && s.detail.trim())
+        ? s.detail
+        : (langData.detailNotProvided || `<span class="noDetail">${langData.noDetailProvided || ''}</span>`);
     }
-    else if(step.type === 'multipop')
-    {
-        const removedVals = multipopFromStackManual(step.count);
-        if(removedVals && removedVals.length > 0)
-        {
-            step.removedValues = removedVals;
-            if(step.detail)
-            {
-                const joined = removedVals.map(v => `<span class="popValue">${v}</span>`).join(', ');
-                step.detail = step.detail.replace('{removedValues}', joined);
-                step.detail = step.detail.replace('{count}', `<span class="potentialValue">${step.count}</span>`);
-            }
-        } 
-        else step.detail = `<span class="emptyStackMessage">Stack is empty! No multipop performed.</span>`;
-    }
+  }
 }
 
 function nextSyntaxStep(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
+  const langData = mpLang();
+  if(mpBusy) return;
 
-    if(currentCommandIndex < steps.length - 1)
-    {
-        currentCommandIndex++;
-        executeStep(steps[currentCommandIndex]);
-        document.getElementById('currentStepInfo').innerHTML = `${currentCommandIndex + 1}. ${steps[currentCommandIndex].description}`;
-        document.getElementById('detailedStepInfo').innerHTML = steps[currentCommandIndex].detail || `<span class="noDetail">No detail provided.</span>`;
-    } 
-    else 
-    {
-        alert(langData.endOfExample);
-        stackArray = [], steps = [], stepCount = 0, potential = 0, isBestWorstMode = false;
-        $('#syntaxModal').modal('hide');
-        goBack();
+  if(currentCommandIndex < steps.length - 1){
+    currentCommandIndex++;
+    executeStep(steps[currentCommandIndex]);
+
+    const s = steps[currentCommandIndex];
+    const infoEl = document.getElementById('currentStepInfo');
+    const detailEl = document.getElementById('detailedStepInfo');
+
+    if(infoEl) infoEl.innerHTML = `${currentCommandIndex + 1}. ${s.description}`;
+    if(detailEl){
+      detailEl.innerHTML = (s.detail && s.detail.trim())
+        ? s.detail
+        : `<span class="noDetail">${langData.noDetailProvided || langData.detailNotProvided || ''}</span>`;
     }
+  } else {
+    showAppMessage(langData.endOfExample, {
+      onClose: () => {
+        stackArray = [];
+        steps = [];
+        stepCount = 0;
+        potential = 0;
+        isBestWorstMode = false;
+        mpBusy = false;
+        goBack();
+      }
+    });
+  }
+}
+
+function rebuildMpSyntaxStepsForLanguage(){
+  if(!Array.isArray(steps) || steps.length === 0) return;
+  if(!Array.isArray(syntaxCommands) || syntaxCommands.length === 0) return;
+
+  const langData = mpLang();
+
+  for(let i = 0; i < steps.length; i++){
+    const cmd = syntaxCommands[i];
+    const s = steps[i];
+
+    if(cmd.type === 'push'){
+      s.description = `${langData.pushButton} ${cmd.value}`;
+      s.value = cmd.value;
+    }else if(cmd.type === 'pop'){
+      s.description = `${langData.popButton}`;
+    }else{
+      s.description = `${langData.multipopButton}(${cmd.count})`;
+      s.count = cmd.count;
+    }
+
+    if(i <= currentCommandIndex){
+      if(s.type === 'push'){
+        const tpl = langData.pushDetail || langData.detailNotProvided || '';
+        s.detail = mpFill(tpl, {
+          value: `<span class="pushValue">${s.value}</span>`
+        });
+      }else if(s.type === 'pop'){
+        if(s.removedValue !== undefined){
+          const tpl = langData.popDetail || langData.detailNotProvided || '';
+          s.detail = mpFill(tpl, {
+            removedValue: `<span class="popValue">${s.removedValue}</span>`
+          });
+        }else{
+          s.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoPop || langData.stackEmptyAlert}</span>`;
+        }
+      }else{
+        if(Array.isArray(s.removedValues) && s.removedValues.length > 0){
+          const joined = s.removedValues.map(v => `<span class="popValue">${v}</span>`).join(', ');
+          const k = Math.min(s.count, s.removedValues.length);
+          const tpl = langData.multipopDetail || langData.detailNotProvided || '';
+          s.detail = mpFill(tpl, {
+            removedValues: joined,
+            count: `<span class="potentialValue">${k}</span>`
+          });
+        }else{
+          s.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoMultipop || langData.stackEmptyAlert}</span>`;
+        }
+      }
+    }
+  }
 }
 
 function openBestWorstParamsModal(){
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
+  activeModalContext = 'multipopBestWorst';
+  changeLanguage(localStorage.getItem('language') || 'en');
 
-    document.getElementById('bestWorstModalLabel').textContent = langData.selectCase;
-    document.getElementById('bestWorstModalText').textContent = langData.bestWorstDescription;
-    document.getElementById('bestCaseButtonLabel').textContent = langData.bestCase;
-    document.getElementById('worstCaseButtonLabel').textContent = langData.worstCase;
-    $('#bestWorstModal').modal('show');
+  const btns = document.querySelectorAll('#bestWorstModal .caseButton');
+  if(btns[0]) btns[0].onclick = executeBestCase;
+  if(btns[1]) btns[1].onclick = executeWorstCase;
+  $('#bestWorstModal').modal('show');
 }
 
-function executeBestCase(){
-    $('#bestWorstModal').modal('hide');
-    isBestWorstMode = true, stepCount = 0, potential = 0;
-    updateStepCount();
-    updatePotential();
+function startBestWorstCase(mode){
+  $('#bestWorstModal').modal('hide');
 
-    const algParameters = document.querySelector('.alg_parameters');
-    if(algParameters) algParameters.style.display = 'none';
+  mpBestWorstMode = mode;
+  isBestWorstMode = true;
+  mpBusy = false;
+  stackArray = [];
+  stepCount = 0;
+  potential = 0;
 
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const dynamicContent = document.getElementById('dynamicContent');
+  const langData = mpLang();
 
-    if(dynamicContent) 
+  const algParameters = document.querySelector('.alg_parameters');
+  if(algParameters) algParameters.style.display = 'none';
+
+  const dynamicContent = document.getElementById('dynamicContent');
+  if(dynamicContent){
+    const isBest = (mode === 'best');
+
+    dynamicContent.innerHTML = `
+      <div class="run-panel">
+        <div class="run-row" id="mainContainer">
+          <div id="stackContainer">
+            <div id="stackView" class="stack-view"></div>
+          </div>
+
+          <div class="stack-controls">
+            <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
+            <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
+          </div>
+
+          <div class="syntax-detailed-info">
+            <div class="info-panel-title" id="bwCaseTitle">${isBest ? langData.bestCase : langData.worstCase}</div>
+            <div class="info-panel-desc" id="bwCaseDesc">${isBest ? langData.bestCaseDescription : langData.worstCaseDescription}</div>
+            <div class="info-panel-sep"></div>
+
+            <div class="info-step-title" id="bwCurrentStepInfo"></div>
+            <div class="info-step-detail" id="bwDetailedStepInfo"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  steps = (mode === 'best')
+    ? [
+        {type:'push', value:1, description:`${langData.pushButton} 1`},
+        {type:'push', value:2, description:`${langData.pushButton} 2`},
+        {type:'push', value:3, description:`${langData.pushButton} 3`},
+        {type:'multipop', count:2, description:`${langData.multipopButton}(2)`}
+      ]
+    : [
+        {type:'push', value:1, description:`${langData.pushButton} 1`},
+        {type:'push', value:2, description:`${langData.pushButton} 2`},
+        {type:'push', value:3, description:`${langData.pushButton} 3`},
+        {type:'multipop', count:3, description:`${langData.multipopButton}(3)`}
+      ];
+
+  mpBWIndex = -1;
+
+  updateStackView();
+  updateCounters();
+  executeStepsWithDelay();
+}
+
+function executeBestCase() {startBestWorstCase('best');}
+function executeWorstCase() {startBestWorstCase('worst');}
+
+function executeStepsWithDelay()
+{
+  let stepIndex = 0;
+  const tick = () => {
+    if(stepIndex < steps.length)
     {
-        dynamicContent.innerHTML = `
-            <div id="mainContainer">
-                <div class="selected-case-info">
-                    <h4>${langData.bestCase}</h4>
-                    <p>${langData.bestCaseDescription}</p>
-                </div>
-                <div id="stackContainer">
-                    <div id="stackView" class="stack-view"></div>
-                </div>
-                <div class="execution-info mt-3">
-                    <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
-                    <p id="currentStepInfo">${langData.executeBestCase}</p>
-                </div>
-            </div>
-        `;
+      executeStep(steps[stepIndex]);
+      mpBWIndex = stepIndex;
+
+      const langData = mpLang();
+      const s = steps[stepIndex];
+      const stepEl = document.getElementById('bwCurrentStepInfo');
+      const detailEl = document.getElementById('bwDetailedStepInfo');
+
+      if(stepEl) 
+        stepEl.innerHTML = `${stepIndex + 1}. ${s.description}`;
+      if(detailEl)
+        detailEl.innerHTML = (s.detail && s.detail.trim()) ? s.detail : (langData.detailNotProvided || '');
+
+      stepIndex++;
+      setTimeout(tick, 1200);
     }
-
-    stackArray = [];
-    steps = [
-        {type: 'push', value: 1, description: `${langData.pushButton} 1`},
-        {type: 'push', value: 2, description: `${langData.pushButton} 2`},
-        {type: 'push', value: 3, description: `${langData.pushButton} 3`},
-        {type: 'multipop', count: 2, description: `${langData.multipopButton}(2)`}
-    ];
-    currentCommandIndex = 0;
-    executeStepsWithDelay();
-}
-
-function executeWorstCase(){
-    $('#bestWorstModal').modal('hide');
-    isBestWorstMode = true, stepCount = 0, potential = 0;
-    updateStepCount();
-    updatePotential();
-
-    const algParameters = document.querySelector('.alg_parameters');
-    if(algParameters) algParameters.style.display = 'none';
-
-    const language = localStorage.getItem('language') || 'en';
-    const langData = translations[language];
-    const dynamicContent = document.getElementById('dynamicContent');
-
-    if(dynamicContent) 
+    else
     {
-        dynamicContent.innerHTML = `
-            <div id="mainContainer">
-                <div class="selected-case-info">
-                    <h4>${langData.worstCase}</h4>
-                    <p>${langData.worstCaseDescription}</p>
-                </div>
-                <div id="stackContainer">
-                    <div id="stackView" class="stack-view"></div>
-                </div>
-                <div class="execution-info mt-3">
-                    <div class="step-count" id="stepCountDisplay">${langData.stepCount}: ${stepCount}</div>
-                    <div class="potential-display" id="potentialDisplay">${langData.potential}: <span class="potentialValue">${potential}</span></div>
-                    <p id="currentStepInfo">${langData.executeWorstCase}</p>
-                </div>
-            </div>
-        `;
-    }
+      const langData = mpLang();
+      const endMsg = (mpBestWorstMode === 'best')
+        ? (langData.multipopEndBestCase || langData.endOfExample)
+        : (langData.multipopEndWorstCase || langData.endOfExample);
 
-    stackArray = [];
-    steps = [
-        {type: 'push', value: 1, description: `${langData.pushButton} 1`},
-        {type: 'push', value: 2, description: `${langData.pushButton} 2`},
-        {type: 'push', value: 3, description: `${langData.pushButton} 3`},
-        {type: 'multipop', count: 3, description: `${langData.multipopButton}(3)`}
-    ];
-    currentCommandIndex = 0;
-    executeStepsWithDelay();
+      showAppMessage(endMsg, {
+        onClose: () => {
+          mpBestWorstMode = null;
+          stackArray = [];
+          steps = [];
+          stepCount = 0;
+          potential = 0;
+          isBestWorstMode = false;
+          mpBusy = false;
+          goBack();
+        }});
+    }
+  };
+  
+  tick();
 }
 
-function executeStepsWithDelay(){
-    let stepIndex = 0;
-    function executeNextStep() 
-    {
-        if(stepIndex < steps.length) 
-        {
-            executeStep(steps[stepIndex]);
-            const currentStepInfo = document.getElementById('currentStepInfo');
-            if(currentStepInfo) currentStepInfo.textContent = steps[stepIndex].description;
-            stepIndex++;
-            setTimeout(executeNextStep, 2000);
-        } 
-        else 
-        {
-            const language = localStorage.getItem('language') || 'en';
-            const langData = translations[language];
-            alert(langData.endOfExample);
-            stackArray = [], steps = [], stepCount = 0, potential = 0, isBestWorstMode = false;
-            goBack();
-        }
-    }
-    executeNextStep();
-}
+function rebuildMpBestWorstForLanguage(){
+  if(!isBestWorstMode || !steps || steps.length === 0) return;
 
-updateStepCount();
-updatePotential();
+  const langData = mpLang();
+  const titleEl = document.getElementById('bwCaseTitle');
+  const descEl  = document.getElementById('bwCaseDesc');
+
+  if(titleEl) titleEl.textContent = (mpBestWorstMode === 'best') ? langData.bestCase : langData.worstCase;
+  if(descEl)  descEl.textContent  = (mpBestWorstMode === 'best') ? langData.bestCaseDescription : langData.worstCaseDescription;
+
+  if(mpBWIndex < 0 || mpBWIndex >= steps.length) return;
+  const s = steps[mpBWIndex];
+
+  if(s.type === 'push'){
+    s.description = `${langData.pushButton} ${s.value}`;
+    const tpl = langData.pushDetail || langData.detailNotProvided || '';
+    s.detail = mpFill(tpl, { value: `<span class="pushValue">${s.value}</span>` });
+  }
+
+  if(s.type === 'pop'){
+    s.description = `${langData.popButton}`;
+    if(s.removedValue !== undefined){
+      const tpl = langData.popDetail || langData.detailNotProvided || '';
+      s.detail = mpFill(tpl, { removedValue: `<span class="popValue">${s.removedValue}</span>` });
+    }else{
+      s.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoPop || langData.stackEmptyAlert}</span>`;
+    }
+  }
+
+  if(s.type === 'multipop'){
+    s.description = `${langData.multipopButton}(${s.count})`;
+    if(Array.isArray(s.removedValues) && s.removedValues.length > 0){
+      const joined = s.removedValues.map(v => `<span class="popValue">${v}</span>`).join(', ');
+      const k = Math.min(s.count, s.removedValues.length);
+      const tpl = langData.multipopDetail || langData.detailNotProvided || '';
+      s.detail = mpFill(tpl, {
+        removedValues: joined,
+        count: `<span class="potentialValue">${k}</span>`
+      });
+    }else{
+      s.detail = `<span class="emptyStackMessage">${langData.stackEmptyNoMultipop || langData.stackEmptyAlert}</span>`;
+    }
+  }
+
+  const stepEl = document.getElementById('bwCurrentStepInfo');
+  const detEl  = document.getElementById('bwDetailedStepInfo');
+  if(stepEl) stepEl.innerHTML = `${mpBWIndex + 1}. ${s.description}`;
+  if(detEl)  detEl.innerHTML  = s.detail || (langData.detailNotProvided || '');
+}
