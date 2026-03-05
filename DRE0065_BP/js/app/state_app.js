@@ -1,1 +1,0 @@
-let currentPage = 'main', activeModalContext = null;
