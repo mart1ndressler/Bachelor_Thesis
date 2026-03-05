@@ -1,74 +1,58 @@
-function changeContent(algorithm){
-    stackArray = [], steps = [], stepCount = 0, potential = 0, isBestWorstMode = false;
-    currentPage = algorithm;
+function _resetOnPageEnter(){
+  stackArray = [];
+  steps = [];
+  stepCount = 0;
+  potential = 0;
+  isBestWorstMode = false;
+}
 
-    document.getElementById('algorithmLinks').style.display = 'none';
-    document.getElementById('backArrow').style.display = 'block';
+function _renderAlgParams(title, L){
+  return `
+    <div class="alg_parameters">
+      <h2>${title}</h2>
+      <button class="btn btn-primary" onclick="openManualParamsModalU()">${L.manualButton}</button>
+      <button class="btn btn-primary" onclick="openRandomParamsModalU()">${L.randomButton}</button>
+      <button class="btn btn-primary" onclick="openBestWorstParamsModalU()">${L.bestWorstButton}</button>
+      <button class="btn btn-primary" onclick="openSyntaxModalU()">${L.syntaxButton}</button>
+    </div>
+  `;
+}
 
-    const contentDiv = document.getElementById('dynamicContent');
-    const aboutBtn = document.getElementById('aboutAppBtn');
-    const modalTitle = document.getElementById('aboutModalLabel');
-    const language = localStorage.getItem('language') || 'en';
-    const section = pageToSection(algorithm);
-    const langData = (section === 'multipop' || section === 'queue' || section === 'splay') ? trPage(section, language) : trAll(language);
+function changeContent(page){
+  _resetOnPageEnter();
+  currentPage = page;
 
-    switch(algorithm){
-        case 'multipop':
-            contentDiv.innerHTML = 
-            `<div class="alg_parameters">
-                <h2>${langData.multipopTitle}</h2>
-                <button class="btn btn-primary" onclick="openManualParamsModalU()">${langData.manualButton}</button>
-                <button class="btn btn-primary" onclick="openRandomParamsModalU()">${langData.randomButton}</button>
-                <button class="btn btn-primary" onclick="openBestWorstParamsModalU()">${langData.bestWorstButton}</button>
-                <button class="btn btn-primary" onclick="openSyntaxModalU()">${langData.syntaxButton}</button>
-            </div>`;
+  document.getElementById('algorithmLinks').style.display = 'none';
+  document.getElementById('backArrow').style.display = 'block';
 
-            aboutBtn.textContent = langData.multipopAbout;
-            modalTitle.textContent = langData.multipopAbout;
-            document.getElementById('aboutModalBody').innerHTML = langData.multipopDescription;
-            document.title = langData.multipopTitle;
-            break;
+  const cfg = getPageCfg(page);
+  if(!cfg)
+    return;
 
-        case 'queue2Stacks':
-            contentDiv.innerHTML = 
-            `<div class="alg_parameters">
-                <h2>${langData.queue2StacksTitle}</h2>
-                <button class="btn btn-primary" onclick="openManualParamsModalU()">${langData.manualButton}</button>
-                <button class="btn btn-primary" onclick="openRandomParamsModalU()">${langData.randomButton}</button>
-                <button class="btn btn-primary" onclick="openBestWorstParamsModalU()">${langData.bestWorstButton}</button>
-                <button class="btn btn-primary" onclick="openSyntaxModalU()">${langData.syntaxButton}</button>
-            </div>`;
+  const language = localStorage.getItem('language') || 'en';
+  const L = trPage(cfg.section, language);
+  const title = L[cfg.titleKey];
+  const about = L[cfg.aboutKey];
+  const desc = L[cfg.descKey];
 
-            aboutBtn.textContent = langData.queue2StacksAbout;
-            modalTitle.textContent = langData.queue2StacksAbout;
-            document.getElementById('aboutModalBody').innerHTML = langData.queue2StacksDescription;
-            document.title = langData.queue2StacksTitle;
-            break;
+  const contentDiv = document.getElementById('dynamicContent');
+  contentDiv.innerHTML = _renderAlgParams(title, L);
 
-        case 'splayTree':
-            contentDiv.innerHTML = 
-            `<div class="alg_parameters">
-                <h2>${langData.splayTreeTitle}</h2>
-                <button class="btn btn-primary" onclick="openManualParamsModalU()">${langData.manualButton}</button>
-                <button class="btn btn-primary" onclick="openRandomParamsModalU()">${langData.randomButton}</button>
-                <button class="btn btn-primary" onclick="openBestWorstParamsModalU()">${langData.bestWorstButton}</button>
-                <button class="btn btn-primary" onclick="openSyntaxModalU()">${langData.syntaxButton}</button>
-            </div>`;
+  const aboutBtn = document.getElementById('aboutAppBtn');
+  const modalTitle = document.getElementById('aboutModalLabel');
+  aboutBtn.textContent = about;
+  modalTitle.textContent = about;
 
-            aboutBtn.textContent = langData.splayTreeAbout;
-            modalTitle.textContent = langData.splayTreeAbout;
-            document.getElementById('aboutModalBody').innerHTML = langData.splayTreeDescription;
-            document.title = langData.splayTreeTitle;
-            break;
-    }
+  document.getElementById('aboutModalBody').innerHTML = desc;
+  document.title = title;
 }
 
 function goBack(){
-    currentPage = 'main';
-    document.getElementById('algorithmLinks').style.display = 'block';
-    document.getElementById('backArrow').style.display = 'none';
-    document.getElementById('dynamicContent').innerHTML = '';
+  currentPage = 'main';
+  document.getElementById('algorithmLinks').style.display = 'block';
+  document.getElementById('backArrow').style.display = 'none';
+  document.getElementById('dynamicContent').innerHTML = '';
 
-    const language = localStorage.getItem('language') || 'en';
-    changeLanguage(language);
+  const language = localStorage.getItem('language') || 'en';
+  changeLanguage(language);
 }

@@ -7,7 +7,7 @@ function sInsertPrompt(){
   if(sBusy) 
     return;
 
-  openActionInputModal({title: L.splayInsertButton, label: L.enterValuePrompt, placeholder: "1", type: "number", min: 1,
+  openActionInputModal({title: L.splayInsertButton, label: L.splayInsertPrompt || (L.splayInsertButton + " x:"), placeholder: "1", type: "number", min: 1,
     onOk: (raw) => {
       const x = Number(raw);
       if(Number.isInteger(x) && x > 0){

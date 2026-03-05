@@ -1,5 +1,10 @@
 let _actionInputOnOk = null;
 
+function _LAll(){
+  const lang = localStorage.getItem('language') || 'en';
+  return(typeof trAll === 'function') ? trAll(lang) : (window.translations?.[lang]?.common || {});
+}
+
 function _setActionInputError(msg){
   const input = document.getElementById('actionInput');
   const err = document.getElementById('actionInputError');
@@ -17,8 +22,7 @@ function _setActionInputError(msg){
 
 function openActionInputModal({title = '', label = '', placeholder = '', type = 'number', min = 1, onOk}){
   _actionInputOnOk = onOk;
-  const lang = localStorage.getItem('language') || 'en';
-  const L = translations[lang];
+  const L = _LAll();
 
   document.getElementById('actionInputModalLabel').textContent = title;
   document.getElementById('actionInputLabel').textContent = label;
@@ -40,8 +44,7 @@ function openActionInputModal({title = '', label = '', placeholder = '', type = 
 }
 
 function showAppMessage(text, {title = null, onClose = null} = {}){
-  const lang = localStorage.getItem('language') || 'en';
-  const L = translations[lang];
+  const L = _LAll();
 
   document.getElementById('messageModalLabel').textContent = (title !== null ? title : (L.messageTitle || 'Message'));
   document.getElementById('messageModalBody').innerHTML = text;
