@@ -62,3 +62,11 @@ Ke každému algoritmu bude přímo na stránce dostupná **statická část s o
 ## Spolupráce mezi studenty
 
 Studenti řešící toto zadání s rozdílným číslem v názvu mohou (ale nemusí) spolupracovat tak, aby výsledek obsahoval **společné uživatelské rozhraní**. Každý student však implementuje **odlišné tři algoritmy** a jejich simulace.
+
+---
+
+## Odkaz na webovou aplikaci
+
+Webová aplikace vytvořená v rámci této bakalářské práce je dostupná zde:
+
+[Spustit webovou aplikaci](https://homel.vsb.cz/~dre0065/DRE0065_BP/html/)
