@@ -11,9 +11,8 @@ function openManualParamsModalU(){
     const title = L[cfg.manual.titleKey] || 'Set Tree Parameters';
     const label = L[cfg.manual.labelKey] || 'Enter values:';
     const infoHtml = L[cfg.manual.infoKey] || '';
-    const placeholder = L[cfg.manual.placeholderKey] || '';
 
-    openActionInputModal({title, label, infoHtml, placeholder, type: 'text', min: null,
+    openActionInputModal({title, label, infoHtml, type: 'text', min: null,
       onOk: (raw) => {
         const text = String(raw || '').trim();
         

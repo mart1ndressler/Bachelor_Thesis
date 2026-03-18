@@ -140,7 +140,7 @@ const ALG_REGISTRY = {
   },
   splayTree: {
     contexts: {manual: 'splayManual', random: 'splayRandom', bestWorst: 'splayBestWorst', syntax: 'splaySyntax'},
-    manual: {type: 'actionInput', titleKey: 'splayInitTitle', labelKey: 'splayInitLabel', infoKey: 'splayInitInfo', placeholderKey: 'splayInitPlaceholder', invalidKey: 'splayInitInvalid',
+    manual: {type: 'actionInput', titleKey: 'splayInitTitle', labelKey: 'splayInitLabel', infoKey: 'splayInitInfo', invalidKey: 'splayInitInvalid',
       start(values){
         if(typeof sResetAll === 'function')
           sResetAll();
