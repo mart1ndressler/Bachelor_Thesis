@@ -226,6 +226,9 @@ function qExecuteSyntaxStep(step, done){
     step.deltaPhi = step.phiAfter - step.phiBefore;
     step.detail = qBuildSyntaxDetail(step, L);
 
+    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+      qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
+
     if(done)
       done();
 
@@ -248,6 +251,9 @@ function qExecuteSyntaxStep(step, done){
       step.actualCost = 0;
       step.detail = qBuildSyntaxDetail(step, L);
 
+      if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+        qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
+
       if(done)
         done();
 
@@ -258,6 +264,9 @@ function qExecuteSyntaxStep(step, done){
     step.wasEmpty = false;
     step.actualCost = step.usedTransfer ? (2 * step.transferredCount + 1) : 1;
     step.detail = qBuildSyntaxDetail(step, L);
+
+    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+      qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
 
     if(done)
       done();
@@ -339,6 +348,8 @@ function nextQueue2StacksSyntaxStep(){
 }
 
 function rebuildQueueSyntaxStepsForLanguage(){
+  if(qBusy)
+    return;
   if(!qIsSyntaxMode || qSyntaxCommands.length === 0)
     return;
 
