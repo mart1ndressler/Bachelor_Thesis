@@ -1,4 +1,0 @@
-document.addEventListener('DOMContentLoaded', function (){
-    const savedLanguage = localStorage.getItem('language') || 'en';
-    changeLanguage(savedLanguage);
-});
