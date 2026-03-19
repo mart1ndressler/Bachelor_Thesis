@@ -42,6 +42,17 @@ function refreshCurrentViewAfterLanguageChange(){
     }
 
     if(typeof mpBusy !== 'undefined' && mpBusy){
+      if(document.getElementById('mpSynPanel')){
+        if(typeof rebuildMpSyntaxStepsForLanguage === 'function')
+          rebuildMpSyntaxStepsForLanguage();
+        if(typeof updateCounters === 'function')
+          updateCounters();
+        if(typeof mpSynRenderInfo === 'function')
+          mpSynRenderInfo();
+
+        return;
+      }
+
       if(typeof updateCounters === 'function')
         updateCounters();
 
@@ -62,6 +73,17 @@ function refreshCurrentViewAfterLanguageChange(){
     }
 
     if(typeof qBusy !== 'undefined' && qBusy){
+      if(document.getElementById('qSynPanel')){
+        if(typeof rebuildQueueSyntaxStepsForLanguage === 'function')
+          rebuildQueueSyntaxStepsForLanguage();
+        if(typeof updateQueueCounters === 'function')
+          updateQueueCounters();
+        if(typeof qSynRenderInfo === 'function')
+          qSynRenderInfo();
+
+        return;
+      }
+
       if(typeof updateQueueCounters === 'function')
         updateQueueCounters();
       if(typeof refreshQInfo === 'function')

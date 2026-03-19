@@ -209,7 +209,7 @@ function qSetSyntaxNextEnabled(enabled){
 }
 
 function qExecuteSyntaxStep(step, done){
-  const L = qLang();
+  let L = qLang();
 
   step.beforeIn = qIn.length;
   step.beforeOut = qOut.length;
@@ -224,10 +224,14 @@ function qExecuteSyntaxStep(step, done){
     step.transferredCount = 0;
     step.phiAfter = step.afterIn;
     step.deltaPhi = step.phiAfter - step.phiBefore;
+
+    L = qLang();
     step.detail = qBuildSyntaxDetail(step, L);
 
-    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex]){
+      step.description = qSyntaxSteps[qSyntaxIndex].description;
       qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
+    }
 
     if(done)
       done();
@@ -249,10 +253,14 @@ function qExecuteSyntaxStep(step, done){
       step.usedTransfer = false;
       step.transferredCount = 0;
       step.actualCost = 0;
+
+      L = qLang();
       step.detail = qBuildSyntaxDetail(step, L);
 
-      if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+      if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex]){
+        step.description = qSyntaxSteps[qSyntaxIndex].description;
         qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
+      }
 
       if(done)
         done();
@@ -263,10 +271,14 @@ function qExecuteSyntaxStep(step, done){
     step.removedValue = removed;
     step.wasEmpty = false;
     step.actualCost = step.usedTransfer ? (2 * step.transferredCount + 1) : 1;
+
+    L = qLang();
     step.detail = qBuildSyntaxDetail(step, L);
 
-    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex])
+    if(qIsSyntaxMode && Array.isArray(qSyntaxSteps) && qSyntaxSteps[qSyntaxIndex]){
+      step.description = qSyntaxSteps[qSyntaxIndex].description;
       qSyntaxSteps[qSyntaxIndex] = {...qSyntaxSteps[qSyntaxIndex], ...step};
+    }
 
     if(done)
       done();
@@ -348,8 +360,6 @@ function nextQueue2StacksSyntaxStep(){
 }
 
 function rebuildQueueSyntaxStepsForLanguage(){
-  if(qBusy)
-    return;
   if(!qIsSyntaxMode || qSyntaxCommands.length === 0)
     return;
 
@@ -372,8 +382,9 @@ function rebuildQueueSyntaxStepsForLanguage(){
     newSteps[i].transferredCount = oldSteps[i].transferredCount;
   }
 
+  const executedCount = qSynFinished ? newSteps.length : qSynHistory.length;
   for(let i = 0; i < newSteps.length; i++){
-    if(i <= qSyntaxIndex)
+    if(i < executedCount)
       newSteps[i].detail = qBuildSyntaxDetail(newSteps[i], L);
   }
 

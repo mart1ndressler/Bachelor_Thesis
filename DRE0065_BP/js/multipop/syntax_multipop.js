@@ -390,7 +390,8 @@ function rebuildMpSyntaxStepsForLanguage(){
     return;
 
   const langData = mpLang();
-
+  const executedCount = mpSynFinished ? steps.length : mpSynHistory.length;
+  
   for(let i = 0; i < steps.length; i++){
     const cmd = syntaxCommands[i];
     const s = steps[i];
@@ -407,7 +408,7 @@ function rebuildMpSyntaxStepsForLanguage(){
       s.requestedCount = cmd.count;
     }
 
-    if(i <= currentCommandIndex)
+    if(i < executedCount)
       s.detail = mpBuildStepDetail(s, langData);
   }
   

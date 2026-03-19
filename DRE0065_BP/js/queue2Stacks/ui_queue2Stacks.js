@@ -603,6 +603,18 @@ function qSynRenderInfo(){
   const total = qSyntaxSteps.length;
   const step = qSyntaxSteps[qSyntaxIndex];
 
+  if(qBusy && qSyntaxIndex > 0 && (!step.detail || step.actualCost === undefined)){
+    const prev = qSyntaxSteps[qSyntaxIndex - 1];
+
+    t1.innerHTML = `${qSyntaxIndex}/${total}: ${prev.description}`;
+    d1.innerHTML = prev.detail || L.detailNotProvided;
+    btn.textContent = L.nextButton || 'Next';
+    btn.disabled = true;
+
+    qSynUpdateFinishUI();
+    return;
+  }
+
   t1.innerHTML = `${qSyntaxIndex + 1}/${total}: ${step.description}`;
   let html = step.detail || L.detailNotProvided;
 
