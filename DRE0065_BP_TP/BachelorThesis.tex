@@ -8,6 +8,12 @@
 \usepackage[cpp]{diplomalst}
 \usepackage{chngcntr}
 \usepackage{float}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage{listings}
+
+\usetikzlibrary{positioning}
+\lstdefinelanguage{JavaScript}{keywords={function, return, var, let, const, if, else, for, while, do, break, continue, switch, case, default, new, this, typeof, true, false, null, undefined}, keywordstyle=\bfseries, sensitive=true, comment=[l]{//}, morecomment=[s]{/*}{*/}, commentstyle=\itshape, morestring=[b]", morestring=[b]', stringstyle=\ttfamily}
 
 \ThesisAuthor{Martin Dressler}
 \ThesisSupervisor{Ing. Martin Kot, Ph.D.}
@@ -40,12 +46,14 @@
 \AddAcronym{PDF}{Portable Document Format}
 \AddAcronym{URL}{Uniform Resource Locator}
 \AddAcronym{HTTP}{HyperText Transfer Protocol}
-
+\AddAcronym{UML}{Unified Modeling Language}
 
 \newcolumntype{d}[1]{D{,}{,}{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
 \counterwithin{figure}{section}
 \counterwithin{table}{section}
 \setcounter{tocdepth}{2}
+\raggedbottom
 \begin{document}
 
 \MakeTitlePages
