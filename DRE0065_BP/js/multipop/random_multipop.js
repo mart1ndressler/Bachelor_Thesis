@@ -72,15 +72,31 @@ function mpRandomFinishIntoManualMode(){
   displayStack(stackArray);
 }
 
-function mpRandomAfterStepSettles(){
+function mpRandomAfterStepSettles(executedStep){
   if(mpBusy){
-    setTimeout(mpRandomAfterStepSettles, 25);
+    setTimeout(() => mpRandomAfterStepSettles(executedStep), 25);
     return;
   }
 
   mpRandomCursor++;
 
   if(mpRandomCursor >= mpRandomSteps.length){
+    if(executedStep?.type === 'push' && !mpSkipAnimations){
+      const items = document.querySelectorAll('.stack-item');
+      const lastItem = items[items.length - 1];
+
+      if(lastItem){
+        mpBusy = true;
+
+        lastItem.addEventListener('animationend', () => {
+          mpBusy = false;
+          mpRandomFinishIntoManualMode();
+        }, {once: true});
+
+        return;
+      }
+    }
+
     mpRandomFinishIntoManualMode();
     return;
   }
@@ -98,6 +114,7 @@ function mpRandomNextStep(){
     return;
   }
 
-  mpExecuteStep(mpRandomSteps[mpRandomCursor]);
-  mpRandomAfterStepSettles();
+  const step = mpRandomSteps[mpRandomCursor];
+  mpExecuteStep(step);
+  mpRandomAfterStepSettles(step);
 }
