@@ -1,0 +1,221 @@
+\chapter{Základní problematika}
+Amortizovaná složitost představuje způsob hodnocení algoritmů a datových struktur, u nichž se~náklady jednotlivých operací mohou výrazně lišit. Pro její správné pochopení je nejprve nutné vycházet ze základních pojmů analýzy algoritmů a z běžného chápání časové složitosti. Teprve na tomto základě lze lépe vysvětlit, v čem se amortizovaná analýza liší od jiných přístupů a proč je pro některé typy algoritmů vhodná.
+
+
+\section{Základní pojmy analýzy algoritmů}
+Analýza algoritmů spočívá ve zkoumání vlastností algoritmů, především jejich správnosti a náročnosti výpočtu. V běžné praxi bývá přesné vyjádření složitosti obtížné, protože závisí na konkrétním výpočetním modelu i na konkrétní implementaci algoritmu. Z tohoto důvodu se v teorii algoritmů využívá asymptotické vyjadřování, které potlačuje méně podstatné detaily a umožňuje soustředit se především na to, jak rychle roste náročnost algoritmu se zvětšující se velikostí vstupu \cite{sawa_ti_03}.
+
+Mezi nejzákladnější pojmy, které se v analýze algoritmů běžně používají, patří algoritmus, vstup, výstup, korektnost, časová složitost, paměťová složitost a asymptotické vyjádření. Jejich stručnou charakteristiku shrnuje tabulka \ref{tab:basic_terms_algorithm_analysis}, která současně vytváří základ pro další výklad časové složitosti i amortizované analýzy.
+
+\begin{table}[htbp]
+\centering
+\caption{Základní pojmy používané při analýze algoritmů}
+\label{tab:basic_terms_algorithm_analysis}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|L{4.0cm}|L{7.7cm}|}
+\hline
+\textbf{Pojem} & \textbf{Stručné vysvětlení} \\ \hline
+    Algoritmus & Jednoznačně definovaný postup, který převádí vstupní data na požadovaný výstup. \\ \hline
+    Vstup & Data, nad nimiž je algoritmus vykonáván. Velikost vstupu obvykle ovlivňuje náročnost výpočtu. \\ \hline
+    Výstup & Výsledek zpracování vstupu algoritmem. \\ \hline
+    Korektnost & Vlastnost algoritmu, která určuje, zda algoritmus poskytuje správný výsledek pro přípustné vstupy. \\ \hline
+    Časová složitost & Vyjadřuje náročnost algoritmu z hlediska času, resp. počtu provedených operací. \\ \hline
+    Paměťová složitost & Vyjadřuje nároky algoritmu na paměť během výpočtu. \\ \hline
+    Asymptotické vyjádření & Způsob popisu růstu náročnosti algoritmu pro velké vstupy bez zdůrazňování méně podstatných detailů. \\ \hline
+\end{tabular}
+\end{table}
+\newpage
+
+
+\section{Časová složitost algoritmů}
+Časová složitost patří mezi základní pojmy analýzy algoritmů a slouží k porovnávání jejich výpočetní náročnosti. Umožňuje popsat, jak se mění počet provedených operací v závislosti na velikosti vstupu, a vytváří tak důležitý základ pro další úvahy o efektivitě algoritmů i pro pochopení amortizované analýzy.
+
+\subsection{Velikost vstupu a definice časové složitosti}
+Časová složitost algoritmů patří mezi nejdůležitější charakteristiky používané při hodnocení efektivity algoritmických řešení. Počítače sice pracují velmi rychle, jejich výpočetní možnosti však nejsou neomezené, a proto i provedení jednotlivých instrukcí vyžaduje určitý čas. Stejný problém navíc může být řešen více různými algoritmy, jejichž doba výpočtu se může výrazně lišit. Z tohoto důvodu je vhodné algoritmy mezi sebou porovnávat a zkoumat jejich náročnost z hlediska počtu provedených operací.
+
+Při běžném programování je sice možné algoritmus implementovat a následně změřit dobu jeho běhu na konkrétních vstupních datech, takový přístup však neposkytuje dostatečně obecnou informaci o chování algoritmu pro všechny možné vstupy. V teorii algoritmů se proto časová složitost nevyjadřuje přímo pomocí skutečného času naměřeného na konkrétním zařízení, ale spíše pomocí počtu provedených instrukcí nebo elementárních operací. Díky tomu je možné odhlédnout od konkrétního hardwaru a zaměřit se na samotné chování algoritmu.
+
+Důležitým pojmem při analýze časové složitosti je velikost vstupu. Pro různé typy problémů může být definována různě. Například u problému třídění lze za velikost vstupu považovat počet prvků ve vstupní posloupnosti, u problémů pracujících s čísly může být přirozenější zvolit počet bitů potřebných k jejich zápisu a u grafových problémů lze velikost vstupu vyjádřit například dvojicí hodnot udávajících počet vrcholů a počet hran. Zvolená definice velikosti vstupu tedy není vždy pevně dána, ale měla by přirozeně odpovídat povaze analyzovaného problému.
+
+Uvažujme nyní konkrétní algoritmus a jeho implementaci. Je přirozené očekávat, že pro vstupy různé velikosti bude obvykle potřeba různý počet instrukcí. Ani pro vstupy stejné velikosti však nemusí algoritmus vždy vykonat stejný počet instrukcí, protože jeho chování může záviset na konkrétním uspořádání vstupních dat. Proto se v teorii často zavádí funkce \(T(n)\), která pro každou velikost vstupu \(n\) udává maximální počet instrukcí provedených algoritmem na vstupu velikosti \(n\). Takto definovaná funkce představuje časovou složitost algoritmu v nejhorším případě a umožňuje zachytit horní mez výpočetní náročnosti \cite{sawa_ti_03}.
+
+\subsection{Časová složitost v nejhorším a průměrném případě}
+Pro lepší názornost je princip časové složitosti v nejhorším případě znázorněn na obrázku \ref{fig:worst_case_complexity}. Jednotlivé body představují různé vstupy stejné nebo podobné velikosti a jejich skutečnou časovou náročnost. Funkce \(T(n)\) zde odpovídá horní hranici těchto hodnot, tedy nejhoršímu případu pro danou velikost vstupu.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{Figures/worst_case.png}
+    \caption{Časová složitost v nejhorším případě}
+    \label{fig:worst_case_complexity}
+\end{figure}
+\newpage
+
+Obrázek \ref{fig:worst_case_complexity} ukazuje, že pro vstupy stejné velikosti nemusí algoritmus vždy vykonat stejný počet operací. Časová složitost v nejhorším případě proto sleduje maximální hodnotu těchto nákladů a poskytuje tak bezpečný odhad horní meze časové náročnosti algoritmu.
+
+Vedle časové složitosti v nejhorším případě má smysl zkoumat také časovou složitost v průměrném případě. V tomto případě není funkce \(T(n)\) určena maximální hodnotou přes všechny vstupy dané velikosti, ale aritmetickým průměrem odpovídajících nákladů. Určení průměrného případu však bývá zpravidla obtížnější než určení nejhoršího případu, protože vyžaduje přesnější představu o množině vstupů a jejich rozdělení. Ve většině případů se proto při analýze algoritmů častěji vychází právě z nejhoršího případu.
+\newpage
+
+Pro názornost je na obrázku \ref{fig:average_case_complexity} znázorněna časová složitost v průměrném případě. Na rozdíl od nejhoršího případu zde funkce \(T(n)\) nepředstavuje horní obálku všech hodnot, ale jejich průměrné chování pro vstupy stejné velikosti.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.78\textwidth]{Figures/average_case.png}
+    \caption{Časová složitost v průměrném případě}
+    \label{fig:average_case_complexity}
+\end{figure}
+
+Časová složitost v nejhorším a průměrném případě se často příliš neliší, i když v některých situacích může být rozdíl významný. Zároveň se uvádí, že zkoumání složitosti v nejlepším případě obvykle nemá příliš velký praktický význam.
+
+\subsection{Asymptotická notace a třídy růstu funkcí}
+Přesné vyjádření časové složitosti bývá často komplikované a silně závisí na zvoleném výpočetním modelu i na detailech implementace. Ve většině případů navíc není nutné znát přesný počet instrukcí, ale stačí odhadnout, jak rychle tento počet roste se zvětšující se velikostí vstupu. Právě z~tohoto důvodu se zavádí asymptotická notace, která zanedbává méně podstatné detaily a umožňuje soustředit se na dominantní složku růstu sledované funkce.
+
+V rámci asymptotické notace se nejčastěji používají symboly \(O\), \(\Omega\) a \(\Theta\). Zápis \(O(g(n))\) vyjadřuje horní asymptotickou mez růstu funkce, tedy skutečnost, že sledovaná funkce neroste rychleji než funkce \(g(n)\) až na konstantní násobek. Naopak \(\Omega(g(n))\) vyjadřuje dolní asymptotickou mez a \(\Theta(g(n))\) charakterizuje situaci, kdy funkce roste stejnou rychlostí jako \(g(n)\) z hlediska horní i dolní meze současně. Kromě těchto symbolů se používají také \(o(g(n))\) a \(\omega(g(n))\), které popisují přísně pomalejší, respektive přísně rychlejší růst \cite{sawa_ti_03}.
+
+Big-O notace popisuje asymptotické chování funkcí a umožňuje při analýze algoritmů zanedbat konstanty i pomaleji rostoucí členy. Na základě asymptotického chování lze algoritmy rozdělovat do~několika základních tříd. Mezi běžné třídy patří například \(O(1)\), \(O(\log n)\), \(O(n)\), \(O(n^2)\), polynomiální růst a exponenciální růst. Za logaritmické se považují algoritmy se složitostí \(\Theta(\log n)\), za lineární algoritmy se složitostí \(\Theta(n)\), za kvadratické se považují algoritmy se složitostí \(\Theta(n^2)\) a podobně. Významnou skupinu tvoří také polynomiální algoritmy, tedy algoritmy, jejichž časová složitost je shora omezena nějakým polynomem. Naopak exponenciální nebo faktoriální složitosti obvykle vedou k tomu, že algoritmus je použitelný pouze pro velmi malé vstupy \cite{mit_big_o}.
+
+\subsection{Praktický význam časové složitosti}
+Při interpretaci asymptotické notace je však nutné mít na paměti i její omezení. Asymptotické odhady vypovídají pouze o tom, jak roste náročnost s rostoucí velikostí vstupu, ale neříkají nic o skutečné době běhu na konkrétním počítači. V notaci mohou být navíc skryty velké konstanty, takže algoritmus s asymptoticky lepší složitostí nemusí být v praxi rychlejší pro malé nebo středně velké vstupy.
+
+Tuto skutečnost lze ilustrovat na třídicích algoritmech. Například quicksort má v nejhorším případě složitost \(\Theta(n^2)\), zatímco heapsort \(\Theta(n \log n)\), ale přesto bývá quicksort v praxi často velmi rychlý. Z toho vyplývá, že časová složitost je sice velmi důležitým nástrojem pro porovnávání algoritmů, ale při hodnocení konkrétního řešení je třeba zohlednit i další okolnosti.
+
+Z praktického hlediska bývají za efektivní považovány především algoritmy s polynomiální časovou složitostí. Ani zde však nelze formulovat zcela absolutní závěry, protože například algoritmus se složitostí \(\Theta(n^{100})\) je sice formálně polynomiální, avšak z praktického hlediska obtížně použitelný. Naopak některé algoritmy s horší teoretickou složitostí mohou být pro malé vstupy nebo specifické úlohy stále využitelné \cite{mit_big_o}.
+
+Pro potřeby této práce je důležité, že klasická časová složitost obvykle hodnotí náklady jednotlivých výpočtů nebo jednotlivých operací vzhledem k velikosti vstupu. U některých datových struktur a algoritmů však může být vhodnější sledovat celkové náklady delší posloupnosti operací. Právě tímto pohledem se zabývá amortizovaná analýza, která je tématem následující části kapitoly.
+\newpage
+
+
+\section{Amortizovaná složitost a její význam}
+Amortizovaná složitost patří mezi přístupy, které umožňují přesněji vystihnout chování algoritmů a~datových struktur v situacích, kdy se náklady jednotlivých operací mohou výrazně lišit. Její význam spočívá v tom, že neposuzuje každou operaci izolovaně, ale bere v úvahu širší souvislosti v rámci celé posloupnosti operací. Díky tomu může lépe popsat dlouhodobé chování některých algoritmů, než kdyby byly jednotlivé kroky hodnoceny samostatně.
+
+\subsection{Vymezení a význam amortizované analýzy}
+Amortizovaná složitost představuje způsob hodnocení algoritmů a datových struktur, při němž se nesleduje pouze cena jedné izolované operace, ale celkové náklady delší posloupnosti operací. Tento přístup vychází z toho, že jednotlivé operace v posloupnosti nemusí mít stejnou cenu. Některé mohou být velmi levné, jiné naopak výrazně dražší, a proto by samostatné hodnocení jedné operace mohlo vést ke zkreslenému pohledu na skutečné chování algoritmu \cite{tarjan1985amortized,kozen_amortized}.
+
+Amortizovaná analýza představuje analýzu posloupnosti operací v nejhorším případě, jejímž cílem je získat těsnější odhad celkových nebo průměrných nákladů na jednu operaci, než kdyby byla každá operace analyzována samostatně \cite{kozen_amortized}. Z toho vyplývá, že dražší operace nejsou posuzovány izolovaně, ale v souvislosti s ostatními operacemi v posloupnosti. Jejich vysoká cena se tak rozkládá mezi více levnějších operací, takže dlouhodobé chování algoritmu může být z hlediska jedné operace příznivější.
+
+Tento princip lze ilustrovat jednoduchým příkladem zásobníku s operacemi \textit{Push}, \textit{Pop} a \textit{Multipop}. Zatímco operace \textit{Multipop} může v jednom okamžiku odebrat více prvků najednou, a být tak dražší než běžné operace, v delší posloupnosti operací každý vložený prvek může být odstraněn pouze omezený početkrát. I když tedy jednotlivá operace může působit nákladně, celkové chování celé posloupnosti zůstává příznivější.
+
+Význam amortizované analýzy spočívá především v tom, že poskytuje realističtější pohled na chování algoritmů a datových struktur v situacích, kdy se náklady jednotlivých operací výrazně liší. Amortizace je chápána jako technika „zprůměrování v čase“ a amortizovaná doba běhu představuje realistickou a zároveň robustní míru složitosti \cite{tarjan1985amortized}. Tento přístup je užitečný zejména tam, kde se vyskytují občasné drahé operace, které jsou však v delší posloupnosti kompenzovány velkým množstvím operací levných.
+
+Amortizovaná analýza je důležitá také proto, že se nespoléhá na pravděpodobnostní předpoklady o rozdělení vstupů. Oproti průměrnému případu není založena na odhadu, jak často se určitý typ vstupu vyskytne. Hodnocení je prováděno nad posloupností operací v nejhorším případě a může vést k přesnějším odhadům, než kdyby byly jednotlivé operace posuzovány odděleně \cite{kozen_amortized}. Tato vlastnost představuje výhodu zejména u datových struktur, jejichž stav se v čase mění a kde jsou jednotlivé operace vzájemně závislé.
+
+Z hlediska návrhu algoritmů a datových struktur je amortizovaná analýza přínosná i tím, že umožňuje lépe vysvětlit, proč mohou být některá řešení v praxi efektivní, i když obsahují občasné nákladné kroky. Pokud je totiž celková cena dlouhé posloupnosti operací příznivá, může být daná datová struktura nebo algoritmus vhodným řešením i přesto, že jednotlivé operace nemají vždy malou cenu nejhoršího případu.
+
+\subsection{Srovnání s ostatními přístupy}
+Amortizovanou analýzu je vhodné odlišit od dalších běžných přístupů používaných při hodnocení algoritmů. Základní rozdíly mezi nejhorším případem, průměrným případem a amortizovanou analýzou shrnuje tabulka \ref{tab:comparison_complexity_approaches}.
+
+\begin{table}[htbp]
+\centering
+\caption{Srovnání vybraných přístupů k hodnocení složitosti}
+\label{tab:comparison_complexity_approaches}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|L{3.4cm}|L{3.8cm}|L{4.9cm}|}
+\hline
+    \textbf{Přístup} & \textbf{Co sleduje} & \textbf{Charakteristika} \\ \hline
+    Nejhorší případ & Maximální cenu jedné operace nebo jednoho běhu & Poskytuje bezpečnou horní mez časové náročnosti, ale může působit příliš pesimisticky. \\ \hline
+    Průměrný případ & Očekávanou cenu vzhledem k rozdělení vstupů & Závisí na předpokladech o~vstupních datech a jejich pravděpodobnostním rozdělení. \\ \hline
+    Amortizovaná analýza & Celkové náklady posloupnosti operací & Hodnotí dlouhodobé chování celé posloupnosti operací, rozkládá cenu dražších kroků mezi levnější operace a~nevyžaduje pravděpodobnostní model vstupů. \\ \hline
+\end{tabular}
+\end{table}
+
+Ze srovnání vyplývá, že amortizovaná analýza zaujímá mezi ostatními přístupy zvláštní postavení. Zachovává výhodu pohledu nejhoršího případu v tom, že neposkytuje pouze optimistický odhad založený na pravděpodobnosti, ale zároveň dovoluje přesněji zachytit skutečné dlouhodobé chování algoritmu. Díky tomu je vhodná pro analýzu datových struktur, u nichž se stav postupně mění a kde některé operace ovlivňují cenu operací následujících.
+
+Na základní vymezení pojmu amortizované složitosti navazují další části této kapitoly, které se~podrobněji věnují jednotlivým metodám amortizované analýzy a jejich praktickému použití.
+
+
+\section{Metody amortizované analýzy}
+Amortizovanou složitost lze studovat několika různými způsoby, které se liší mírou názornosti i~formální přesnosti. Jednotlivé metody přitom nepředstavují vzájemně soupeřící přístupy, ale různé možnosti, jak popsat a odůvodnit chování delších posloupností operací. Jejich znalost je důležitá nejen pro samotnou analýzu algoritmů, ale také pro volbu vhodného způsobu výkladu při objasňování amortizované složitosti.
+
+\subsection{Agregovaná metoda}
+Agregovaná metoda představuje nejjednodušší způsob amortizované analýzy. Jejím základním principem je sledování celkových nákladů celé posloupnosti operací a následné odvození průměrných nákladů připadajících na jednu operaci. Místo samostatného hodnocení jednotlivých operací se~tedy analyzuje celkový součet jejich cen. Pokud lze ukázat, že posloupnost \(m\) operací má celkovou cenu \(O(m)\), je možné usoudit, že amortizovaná cena jedné operace je konstantní \cite{cmu_amortized}.
+
+Výhodou agregované metody je její jednoduchost a přehlednost. Hodí se zejména v situacích, kdy lze celkové náklady celé posloupnosti vyjádřit přímo a bez zavádění dalších pomocných veličin. Naopak u složitějších datových struktur bývá tato metoda méně flexibilní.
+
+\subsection{Účetní metoda}
+Účetní metoda, označovaná také jako bankéřská metoda, vychází z představy, že jednotlivým operacím lze přiřadit určitou účtovanou cenu, která se může lišit od jejich skutečné ceny. Levnějším operacím je přiřazena vyšší cena, než jakou ve skutečnosti mají, a vzniklý přebytek se uchovává jako rezerva pro budoucí dražší operace. Díky tomu je možné rozložit cenu nákladnějších kroků mezi větší počet kroků, které jsou levnější \cite{cmu_amortized}.
+
+U této metody je důležité, aby nahromaděná rezerva v průběhu celé posloupnosti operací nikdy neklesla pod nulu. Účetní metoda tak názorně ukazuje, že některé operace mohou vytvářet rezervu pro budoucí nákladnější kroky.
+
+\subsection{Potenciálová metoda}
+Potenciálová metoda pracuje s potenciálovou funkcí, která vyjadřuje stav datové struktury a určitou rezervu nahromaděnou v systému. Amortizovaná cena operace je zde určena jako součet její skutečné ceny a změny potenciálu mezi stavem před operací a po ní \cite{cmu_amortized}. Vzhledem k její obecnosti a významu bude tato metoda podrobněji vysvětlena v následující části kapitoly.
+
+\subsection{Vztah mezi jednotlivými metodami}
+Agregovaná metoda, účetní metoda a potenciálová metoda představují tři základní způsoby, jak přistupovat k amortizované analýze. Jejich hlavní vlastnosti a rozdíly shrnuje tabulka \ref{tab:methods_amortized_analysis}.
+
+\begin{table}[htbp]
+\centering
+\caption{Základní metody amortizované analýzy}
+\label{tab:methods_amortized_analysis}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|L{3.4cm}|L{3.9cm}|L{4.8cm}|}
+\hline
+    \textbf{Metoda} & \textbf{Základní princip} & \textbf{Charakteristika} \\ \hline
+    Agregovaná metoda & Sleduje celkovou cenu celé posloupnosti operací & Nejjednodušší přístup, vhodný zejména tehdy, když lze celkové náklady celé posloupnosti přímo a~přehledně vyjádřit. \\ \hline
+    Účetní metoda & Přiřazuje operacím účtované ceny a~vytváří rezervu pro dražší operace & Názorný přístup založený na představě „ukládání rezervy“, která se později využívá při nákladnějších krocích. \\ \hline
+    Potenciálová metoda & Pracuje s~potenciálovou funkcí vyjadřující stav datové struktury & Obecný a formální přístup, který umožňuje přesně zachytit vztah mezi změnou stavu struktury a~amortizovanou cenou operace. \\ \hline
+\end{tabular}
+\end{table}
+
+Z uvedeného srovnání vyplývá, že jednotlivé metody nejsou ve vzájemném rozporu, ale spíše představují různé pohledy na tentýž problém. Zatímco agregovaná metoda bývá nejjednodušší na použití, potenciálová metoda nabízí největší obecnost a formální sílu. Právě proto je v další části této kapitoly podrobněji rozebrána.
+
+
+\section{Potenciálová metoda}
+Potenciálová metoda představuje jeden z nejdůležitějších nástrojů amortizované analýzy, protože umožňuje formálně popsat vztah mezi aktuálním stavem datové struktury a náklady budoucích operací. Její význam spočívá v tom, že dokáže zachytit nejen cenu právě prováděného kroku, ale i~to, jak se změnou stavu systému vytváří nebo spotřebovává rezerva pro další operace.
+
+\subsection{Princip potenciálové metody}
+Potenciálová metoda patří mezi základní metody amortizované analýzy a představuje obecný způsob, jak vyjádřit vztah mezi skutečnými náklady jednotlivých operací a jejich dlouhodobým chováním v celé posloupnosti operací. Vychází z předpokladu, že aktuální stav datové struktury může nést určitou rezervu pro budoucí nákladnější operace. Tato rezerva je popsána pomocí potenciálové funkce \cite{tarjan1985amortized}.
+
+Potenciálová metoda proto nesleduje pouze skutečnou cenu právě prováděné operace, ale také to, jak se po jejím provedení změní stav celé datové struktury. Díky tomu umožňuje přesněji zachytit celkové chování delších posloupností operací než izolované hodnocení jednotlivých kroků. Ve srovnání s agregovanou a účetní metodou je abstraktnější, ale zároveň poskytuje obecný a formální nástroj, který je vhodný i pro složitější důkazy amortizované složitosti. Potenciálovou metodu lze navíc chápat jako zobecnění účetní metody, protože aktuální stav „účtu“ lze interpretovat jako aktuální potenciál datové struktury. Na rozdíl od účetní metody však potenciál nemusí být vyjádřen pouze celočíselnou rezervou přiřazenou jednotlivým operacím, ale může nabývat i reálných hodnot a jeho změny se mohou u různých operací lišit.
+
+\subsection{Potenciálová funkce a amortizovaná cena operace}
+Klíčovým pojmem této metody je potenciálová funkce, obvykle značená \(\Phi\). Tato funkce přiřazuje každému stavu datové struktury určitou číselnou hodnotu, která vyjadřuje velikost nahromaděné rezervy v daném stavu. Potenciál tedy nepředstavuje skutečný čas ani skutečný počet instrukcí, ale pomocnou veličinu, která umožňuje lépe vyjádřit rozložení nákladů mezi jednotlivé operace.
+
+Je-li skutečná cena \(i\)-té operace označena jako \(c_i\), stav datové struktury před provedením operace jako \(D_{i-1}\) a stav po jejím provedení jako \(D_i\), pak amortizovaná cena této operace může být zapsána ve tvaru \[\hat{c}_i = c_i + \Phi(D_i) - \Phi(D_{i-1}).\]
+
+Tento vztah vyjadřuje, že amortizovaná cena operace se skládá ze skutečné ceny operace a změny potenciálu mezi stavem před operací a po ní. Pokud se potenciál po operaci zvětší, znamená to, že se vytváří rezerva pro budoucí operace. Pokud se naopak potenciál zmenší, dochází k využití dříve nahromaděné rezervy.
+
+Pro celou posloupnost \(m\) operací pak platí \[\sum_{i=1}^{m} \hat{c}_i=\sum_{i=1}^{m} c_i + \Phi(D_m) - \Phi(D_0).\]
+
+Z tohoto vztahu je patrné, že se při sečtení amortizovaných cen většina změn potenciálu navzájem vyruší a výsledkem zůstane součet skutečných cen operací upravený pouze o rozdíl koncového a~počátečního potenciálu. Důležitou vlastností potenciálové funkce je proto to, že by měla být zvolena tak, aby její hodnoty byly nezáporné, případně aby počáteční stav neměl záporný potenciál. Díky tomu lze ukázat, že součet amortizovaných cen celé posloupnosti poskytuje horní odhad součtu jejich skutečných cen. Potenciálová metoda tak umožňuje dokázat, že i když některé operace mohou být drahé, jejich cena je v delší posloupnosti vyvážena operacemi jinými.
+
+Z praktického hlediska je při volbě potenciálové funkce důležité, aby odpovídala vlastnostem konkrétní datové struktury a správně vystihovala, jakým způsobem systém vytváří a spotřebovává rezervu. Právě volba vhodné potenciálové funkce bývá při důkazu amortizované složitosti jedním z~nejdůležitějších kroků.
+
+\subsection{Význam a využití potenciálové metody}
+Význam potenciálové metody spočívá především v její obecnosti a formální síle. Ve srovnání s ostatními metodami amortizované analýzy umožňuje velmi přesně popsat změny stavu datové struktury a jejich vliv na cenu budoucích operací. Díky tomu je vhodná i pro analýzu složitějších struktur, u nichž nestačí pouze sledovat celkový součet nákladů nebo intuitivně rozdělovat rezervu mezi jednotlivé operace.
+
+Potenciálová metoda je užitečná zejména v situacích, kdy se stav datové struktury v čase výrazně mění a kdy některé operace přímo ovlivňují náročnost operací následujících. V takovém případě poskytuje přirozený způsob, jak vyjádřit, že nákladnější operace nejsou izolovaným jevem, ale souvisejí s vývojem celého systému. To je také důvod, proč je tato metoda často považována za nejuniverzálnější z běžně používaných metod amortizované analýzy.
+
+Z hlediska této práce je potenciálová metoda důležitá i proto, že umožňuje velmi přehledně sledovat, jak se v jednotlivých stavech vytváří nebo spotřebovává rezerva, a tím názorně vysvětlit, proč nelze cenu některých algoritmů hodnotit pouze podle jedné samostatné operace. Právě tato vlastnost činí potenciálovou metodu vhodnou nejen pro teoretickou analýzu, ale i pro výukové a~vizualizační účely.
+
+
+\section{Vybrané algoritmy vhodné pro amortizovanou analýzu}
+Amortizovaná analýza se uplatňuje zejména u algoritmů, u nichž se jednotlivé operace mohou lišit svou skutečnou cenou, avšak při delší posloupnosti operací vykazuje celý systém příznivější chování. Tento přístup je vhodný především tehdy, když se vyskytují občasné nákladnější operace, jejichž cenu lze rozložit mezi větší počet operací levnějších. Typickou situací je stav, kdy se mění datová struktura a některé operace ovlivňují náročnost operací následujících.
+
+Mezi často uváděné příklady algoritmů vhodných pro amortizovanou analýzu patří například:
+\begin{itemize}
+    \item Multipop na zásobníku,
+    \item Fronta využívající dva zásobníky,
+    \item Splay strom,
+    \item Dynamické pole s občasným rozšířením kapacity,
+    \item Binární čítač,
+    \item některé operace nad disjoint-set strukturami.
+\end{itemize}
+
+Tyto algoritmy mají společné to, že jednotlivé operace nemusí mít vždy stejnou cenu, ale v delší posloupnosti operací lze jejich chování pomocí amortizované analýzy popsat přesněji, než kdyby bylo hodnoceno pouze izolovaně po jednotlivých krocích.
+
+Do praktické části této bakalářské práce byly vybrány tři algoritmy: Multipop na zásobníku, fronta využívající dva zásobníky a Splay strom. Tyto algoritmy byly zvoleny tak, aby společně tvořily trojici příkladů různé obtížnosti a zároveň umožňovaly názorně ukázat různé projevy amortizované složitosti. Jejich základní charakteristiku shrnuje tabulka \ref{tab:selected_algorithms_amortized}.
+
+\begin{table}[htbp]
+\centering
+\caption{Vybrané algoritmy vhodné pro amortizovanou analýzu}
+\label{tab:selected_algorithms_amortized}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{|L{4.3cm}|L{2.4cm}|L{5.6cm}|}
+\hline
+    \textbf{Algoritmus} & \textbf{Obtížnost} & \textbf{Stručná charakteristika} \\ \hline
+    Multipop na zásobníku & jednoduchá & Jednodušší příklad vhodný pro úvod do amortizované analýzy, na němž lze ukázat, že i operace, která může být v jednom okamžiku dražší, zůstává v delší posloupnosti nákladově vyvážená. \\ \hline
+    Fronta využívající dva zásobníky & střední & Příklad implementace fronty pomocí dvou zásobníků, u něhož se náklady přirozeně rozkládají mezi operace enqueue a dequeue a kde se amortizovaná analýza uplatňuje při vysvětlení přesunů prvků mezi zásobníky. \\ \hline
+    Splay strom & vyšší & Pokročilejší datová struktura, u~níž se amortizovaná analýza používá k popisu dlouhodobého chování po sérii přístupových operací a k vysvětlení vlivu rotací na budoucí náklady operací. \\ \hline
+\end{tabular}
+\end{table}
+
+Z uvedeného přehledu je patrné, že vybrané algoritmy pokrývají různé úrovně obtížnosti i různé způsoby projevu amortizované složitosti. Právě proto tvoří vhodný základ pro praktickou část této práce, v níž budou dále využity pro vytvoření názorné výukové vizualizace.
